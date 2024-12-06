@@ -112,15 +112,15 @@ CREATE TABLE Rental (
 -- Billing Table
 CREATE TABLE Billing (
     bill_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,           -- Reference to User Table
-    reservation_id INT NOT NULL,    -- Reference to Reservation Table
-    promo_id INT DEFAULT NULL,      -- Reference to Promotion Table
+    user_id INT NOT NULL,           -- Reference to User table
+    reservation_id INT NOT NULL,    -- Reference to Reservation table
+    promo_id INT DEFAULT NULL,      -- Reference to Promotion table
     amount DECIMAL(10, 2) NOT NULL,
     status ENUM('Pending', 'Paid', 'Refunded') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(user_id),
     FOREIGN KEY (reservation_id) REFERENCES Reservation(reservation_id),
-    FOREIGN KEY (promo_id) REFERENCES Promotion(promo_id) -- Link to applied promotion
+    FOREIGN KEY (promo_id) REFERENCES Promotion(promo_id) 
 );
 
 -- Promotion Table
