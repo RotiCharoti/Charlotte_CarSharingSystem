@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .dashboard-section {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .rental-list, .membership-info {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .rental-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .no-data {
+            text-align: center;
+            color: gray;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Your Dashboard</h1>
+
+    <div class="dashboard-section membership-info" id="membershipInfo">
+        <h2>Your Membership Tier</h2>
+        <p>Loading...</p>
+    </div>
+
+    <div class="dashboard-section rental-list" id="rentalList">
+        <h2>Your Rental History</h2>
+        <p>Loading...</p>
+    </div>
+
+    <div class="dashboard-section">
+        <button onclick="window.location.href='/update-details.html'">Update Personal Details</button>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <script>
+        async function fetchData(endpoint, section, renderFunction) {
+            const errorDiv = document.getElementById('error');
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    credentials: 'include', // Ensure cookies are included for session handling
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.message || `Failed to fetch data from ${endpoint}.`);
+                }
+
+                const result = await response.json();
+                renderFunction(result.data, section);
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                errorDiv.textContent = error.message || 'Error connecting to the server.';
+                section.innerHTML = '<p class="no-data">No data available.</p>';
+            }
+        }
+
+        function renderMembership(membership, section) {
+            if (!membership) {
+                section.innerHTML = '<p class="no-data">No membership details available.</p>';
+                return;
+            }
+            section.innerHTML = `
+                <p><strong>Membership Tier Details</strong></p>
+                <p><strong>Tier:</strong> ${membership.tier}</p>
+                <p><strong>Hourly Rate Discount:</strong> ${membership.hourly_rate_discount || 0}%</p>
+                <p><strong>Priority Access:</strong> ${membership.priority_access ? 'Yes' : 'No'}</p>
+                <p><strong>Booking Limit Per Mnth:</strong> ${membership.booking_limit || 'N/A'} rentals</p>
+            `;
+        }
+
+        function renderRentals(rentals, section) {
+            section.innerHTML = '';
+            if (!rentals || rentals.length === 0) {
+                section.innerHTML = '<p class="no-data">No rental history available.</p>';
+                return;
+            }
+            rentals.forEach(rental => {
+                const rentalItem = document.createElement('div');
+                rentalItem.className = 'rental-item';
+                rentalItem.innerHTML = `
+                    <p><strong>Rental Record Details</strong></p>
+                    <p><strong>Vehicle ID:</strong> ${rental.vehicle_id}</p>
+                    <p><strong>Start Time:</strong> ${rental.start_time || 'N/A'}</p>
+                    <p><strong>End Time:</strong> ${rental.end_time || 'N/A'}</p>
+                    <p><strong>Cost:</strong> $${rental.cost || '0.00'}</p>
+                    <p><strong>Status:</strong> ${rental.status || 'Unknown'}</p>
+                `;
+                section.appendChild(rentalItem);
+            });
+        }
+
+        window.onload = function () {
+            const membershipInfo = document.getElementById('membershipInfo');
+            const rentalList = document.getElementById('rentalList');
+
+            fetchData('http://localhost:8080/membership-details', membershipInfo, renderMembership);
+            fetchData('http://localhost:8080/rental-records', rentalList, renderRentals);
+        };
+    </script>
+</body>
+</html>

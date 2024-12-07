@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserve a Vehicle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reserve a Vehicle</h1>
+
+    <form id="reservationForm">
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" id="start_time" required>
+
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" required>
+
+        <button type="submit">Reserve</button>
+    </form>
+
+    <div class="error" id="error"></div>
+
+    <script>
+        document.getElementById('reservationForm').onsubmit = async function (e) {
+            e.preventDefault();
+
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '';
+
+            const vehicleId = localStorage.getItem('selectedVehicleId');
+            if (!vehicleId) {
+                errorDiv.textContent = 'No vehicle selected for reservation.';
+                return;
+            }
+
+            const startTimeInput = document.getElementById('start_time');
+            const endTimeInput = document.getElementById('end_time');
+
+            // Convert `datetime-local` input to ISO 8601 (RFC3339) format
+            const startTime = startTimeInput.value ? new Date(startTimeInput.value).toISOString() : null;
+            const endTime = endTimeInput.value ? new Date(endTimeInput.value).toISOString() : null;
+
+            if (!startTime || !endTime) {
+                errorDiv.textContent = 'Please select valid start and end times.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8081/create-reservation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', // Ensures cookies are sent
+                    body: JSON.stringify({
+                        vehicle_id: parseInt(vehicleId, 10),
+                        start_time: startTime,
+                        end_time: endTime,
+                        expected_charge_level: 80,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to create reservation.');
+                }
+
+                const result = await response.json();
+                console.log('Reservation created successfully:', result);
+                console.log('User ID:', result.user_id); // Log the user_id in the browser console
+
+                alert('Reservation created successfully!');
+                console.log('Reservation:', result);
+
+                // Redirect to the main page or a confirmation page
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('Error creating reservation:', error);
+                errorDiv.textContent = error.message || 'An unknown error occurred.';
+            }
+        };
+    </script>
+</body>
+</html>

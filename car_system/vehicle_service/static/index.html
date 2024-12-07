@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Vehicles</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .vehicle-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .vehicle-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+        .no-data {
+            color: gray;
+            text-align: center;
+        }
+        .reserve-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .reserve-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Available Vehicles</h1>
+    <div class="vehicle-list" id="vehicleList">
+        <p>Loading...</p>
+    </div>
+    <div class="error" id="error"></div>
+
+    <script>
+        async function fetchVehicles() {
+            const vehicleList = document.getElementById('vehicleList');
+            const errorDiv = document.getElementById('error');
+            vehicleList.innerHTML = 'Loading...';
+            errorDiv.textContent = '';
+
+            try {
+                const response = await fetch('http://localhost:8081/available-vehicles', {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.message || 'Failed to fetch vehicles.');
+                }
+
+                const result = await response.json();
+                const vehicles = result.vehicles;
+
+                vehicleList.innerHTML = '';
+                if (!vehicles || vehicles.length === 0) {
+                    vehicleList.innerHTML = '<p class="no-data">No vehicles available.</p>';
+                    return;
+                }
+
+                vehicles.forEach(vehicle => {
+                    const vehicleItem = document.createElement('div');
+                    vehicleItem.className = 'vehicle-item';
+                    vehicleItem.innerHTML = `
+                        <h2>${vehicle.model} (${vehicle.license_plate})</h2>
+                        <p><strong>Location:</strong> ${vehicle.location}</p>
+                        <p><strong>Status:</strong> ${vehicle.status}</p>
+                        <p><strong>Reservation Status:</strong> ${vehicle.reservation_status}</p>
+                        <p><strong>Battery Level:</strong> ${vehicle.charge_level}%</p>
+                        <p><strong>Battery Capacity:</strong> ${vehicle.battery_capacity_kwh || 'N/A'} kWh</p>
+                        <p><strong>Cleanliness:</strong> ${vehicle.cleanliness}</p>
+                        <p><strong>Mileage:</strong> ${vehicle.mileage} km</p>
+                        <p><strong>Rental Rate:</strong> $${vehicle.rental_rate.toFixed(2)}/hour</p>
+                        <button class="reserve-button" onclick="redirectToReservation(${vehicle.vehicle_id})">Reserve</button>
+                    `;
+                    vehicleList.appendChild(vehicleItem);
+                });
+            } catch (error) {
+                console.error('Error fetching vehicles:', error);
+                errorDiv.textContent = error.message || 'Error connecting to the server.';
+            }
+        }
+
+        function redirectToReservation(vehicleId) {
+            // Store the selected vehicle ID in localStorage
+            localStorage.setItem('selectedVehicleId', vehicleId);
+
+            // Redirect to the reservation page
+            window.location.href = '/reservation.html';
+        }
+
+        // Fetch vehicles on page load
+        window.onload = fetchVehicles;
+    </script>
+</body>
+</html>

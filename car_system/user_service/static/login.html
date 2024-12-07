@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Rental System - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .response {
+            margin-top: 20px;
+            color: green;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+        .link-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .link-container a {
+            color: blue;
+            text-decoration: none;
+        }
+        .link-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Car Rental System - Login</h1>
+    <form id="loginForm">
+        <label for="loginEmail">Email:</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+
+        <button type="button" onclick="loginUser()">Login</button>
+    </form>
+
+    <div class="response" id="response"></div>
+    <div class="error" id="error"></div>
+
+    <!-- Register Link -->
+    <div class="link-container">
+        <a href="/index.html">Don't have an account? Register here</a>
+    </div>
+
+    <script>
+        async function loginUser() {
+            const responseDiv = document.getElementById('response');
+            const errorDiv = document.getElementById('error');
+            responseDiv.textContent = 'Logging in...';
+            errorDiv.textContent = '';
+
+            const data = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:8080/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include', // Include cookies for session handling
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    errorDiv.textContent = errorData.message || 'Login failed.';
+                    document.getElementById('loginPassword').value = ''; // Clear password field
+                    return;
+                }
+
+                const result = await response.json();
+                console.log('Login successful:', result); // Logs response in browser console
+                console.log('User ID:', result.user_id);
+                console.log('Session ID:', result.session_id);
+
+                responseDiv.textContent = `Login Successful! Welcome, User ID: ${result.user_id}`;
+
+                // Redirect to dashboard after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 2000);
+            } catch (error) {
+                console.error('Fetch error:', error); // Logs connection error in browser console
+                errorDiv.textContent = 'Error connecting to server.';
+            }
+        }
+    </script>
+</body>
+</html>
