@@ -35,6 +35,7 @@ func main() {
 		handlers.AllowCredentials(),
 	)
 
+	log.Println("User-service running on port 8081...")
 	log.Fatal(http.ListenAndServe(":8081", cors(router)))
 
 }
