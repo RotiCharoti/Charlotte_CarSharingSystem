@@ -42,6 +42,12 @@
             margin-top: 10px;
             cursor: pointer;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -57,8 +63,9 @@
         <p>Loading...</p>
     </div>
 
-    <div class="dashboard-section">
+    <div class="dashboard-section button-container">
         <button onclick="window.location.href='/update-details.html'">Update Personal Details</button>
+        <button onclick="window.location.href='/vehicle.html'">View Available Vehicles</button>
     </div>
 
     <div class="error" id="error"></div>
@@ -96,7 +103,7 @@
                 <p><strong>Tier:</strong> ${membership.tier}</p>
                 <p><strong>Hourly Rate Discount:</strong> ${membership.hourly_rate_discount || 0}%</p>
                 <p><strong>Priority Access:</strong> ${membership.priority_access ? 'Yes' : 'No'}</p>
-                <p><strong>Booking Limit Per Mnth:</strong> ${membership.booking_limit || 'N/A'} rentals</p>
+                <p><strong>Booking Limit Per Month:</strong> ${membership.booking_limit || 'N/A'} rentals</p>
             `;
         }
 
@@ -125,8 +132,8 @@
             const membershipInfo = document.getElementById('membershipInfo');
             const rentalList = document.getElementById('rentalList');
 
-            fetchData('http://localhost:8080/membership-details', membershipInfo, renderMembership);
-            fetchData('http://localhost:8080/rental-records', rentalList, renderRentals);
+            fetchData('http://localhost:8080/api/membership-details', membershipInfo, renderMembership);
+            fetchData('http://localhost:8080/api/rental-records', rentalList, renderRentals);
         };
     </script>
 </body>

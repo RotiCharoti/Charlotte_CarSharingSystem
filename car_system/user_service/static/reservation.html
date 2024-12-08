@@ -31,6 +31,11 @@
             text-align: center;
             margin-top: 10px;
         }
+        .success {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -47,13 +52,16 @@
     </form>
 
     <div class="error" id="error"></div>
+    <div class="success" id="success"></div>
 
     <script>
         document.getElementById('reservationForm').onsubmit = async function (e) {
             e.preventDefault();
 
             const errorDiv = document.getElementById('error');
-            errorDiv.textContent = '';
+            const successDiv = document.getElementById('success');
+            errorDiv.textContent = ''; // Clear previous errors
+            successDiv.textContent = ''; // Clear previous success messages
 
             const vehicleId = localStorage.getItem('selectedVehicleId');
             if (!vehicleId) {
@@ -63,8 +71,6 @@
 
             const startTimeInput = document.getElementById('start_time');
             const endTimeInput = document.getElementById('end_time');
-
-            // Convert `datetime-local` input to ISO 8601 (RFC3339) format
             const startTime = startTimeInput.value ? new Date(startTimeInput.value).toISOString() : null;
             const endTime = endTimeInput.value ? new Date(endTimeInput.value).toISOString() : null;
 
@@ -74,10 +80,10 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8081/create-reservation', {
+                const response = await fetch('http://localhost:8080/api/proxy-create-reservation', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include', // Ensures cookies are sent
+                    credentials: 'include', // Ensure cookies are included for session handling
                     body: JSON.stringify({
                         vehicle_id: parseInt(vehicleId, 10),
                         start_time: startTime,
@@ -86,20 +92,31 @@
                     }),
                 });
 
+                const rawResponse = await response.text();
+                console.log("Raw response:", rawResponse);
+
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to create reservation.');
+                    let errorMessage = 'Failed to create reservation.';
+                    try {
+                        const errorData = JSON.parse(rawResponse);
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (err) {
+                        console.error('Failed to parse error response:', err);
+                    }
+                    throw new Error(errorMessage);
                 }
 
-                const result = await response.json();
+                const result = JSON.parse(rawResponse);
                 console.log('Reservation created successfully:', result);
-                console.log('User ID:', result.user_id); // Log the user_id in the browser console
 
+                // Store reservation ID in localStorage for payment reference
+                if (result.data && result.data.reservation_id) {
+                    localStorage.setItem('reservationId', result.data.reservation_id);
+                }
+
+                successDiv.textContent = 'Reservation created successfully!';
                 alert('Reservation created successfully!');
-                console.log('Reservation:', result);
-
-                // Redirect to the main page or a confirmation page
-                window.location.href = '/index.html';
+                window.location.href = '/payment.html'; // Redirect to payment page
             } catch (error) {
                 console.error('Error creating reservation:', error);
                 errorDiv.textContent = error.message || 'An unknown error occurred.';

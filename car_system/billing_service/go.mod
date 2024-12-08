@@ -1,4 +1,4 @@
-module car_system/vehicle_service
+module car_system/billing_service
 
 go 1.23.2
 

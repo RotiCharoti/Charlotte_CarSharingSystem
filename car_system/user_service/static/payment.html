@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .reservation-details {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .rental-fee {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment</h1>
+        <div id="reservationDetails" class="reservation-details"></div>
+        <div id="rentalFee" class="rental-fee"></div>
+        <div id="error" class="error"></div>
+        <button onclick="redirectToDashboard()">Pay</button>
+    </div>
+
+    <script>
+        async function fetchLatestReservation() {
+            const reservationDetailsDiv = document.getElementById('reservationDetails');
+            const rentalFeeDiv = document.getElementById('rentalFee');
+            const errorDiv = document.getElementById('error');
+
+            try {
+                const response = await fetch('http://localhost:8080/api/proxy-get-latest-reservation', {
+                    method: 'GET',
+                    credentials: 'include', // Ensure cookies are included for session handling
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch reservation details.');
+                }
+
+                const result = await response.json();
+                console.log('Reservation Data:', result);
+
+                if (result.data) {
+                    const reservation = result.data;
+                    reservationDetailsDiv.innerHTML = `
+                        <h2>Reservation Details</h2>
+                        <p><strong>Start Time:</strong> ${new Date(reservation.start_time).toLocaleString()}</p>
+                        <p><strong>End Time:</strong> ${new Date(reservation.end_time).toLocaleString()}</p>
+                        <p><strong>Reserved At:</strong> ${new Date(reservation.created_at).toLocaleString()}</p>
+                    `;
+
+                    // Fetch rental fee
+                    fetchRentalFee(reservation);
+                } else {
+                    reservationDetailsDiv.innerHTML = '<p>No reservation found for the user.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching reservation:', error);
+                errorDiv.textContent = error.message;
+            }
+        }
+
+        async function fetchRentalFee(reservation) {
+            const rentalFeeDiv = document.getElementById('rentalFee');
+            const errorDiv = document.getElementById('error');
+
+            try {
+                const response = await fetch('http://localhost:8080/api/proxy-calculate-rental-fee', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', // Include session cookie
+                    body: JSON.stringify({
+                        reservation_id: reservation.reservation_id,
+                        start_time: reservation.start_time,
+                        end_time: reservation.end_time,
+                        rental_rate: reservation.rental_rate, 
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to calculate rental fee.');
+                }
+
+                const result = await response.json();
+                console.log('Rental Fee:', result);
+
+                rentalFeeDiv.textContent = `Rental Fee: $${result.total_fee.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error fetching rental fee:', error);
+                errorDiv.textContent = error.message;
+            }
+
+            console.log('Sending rental fee payload:', {
+    reservation_id: reservation.reservation_id,
+    start_time: reservation.start_time,
+    end_time: reservation.end_time,
+    rental_rate: reservation.vehicle_rental_rate,
+});
+
+        }
+
+        function redirectToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+
+        // Fetch the latest reservation on page load
+        fetchLatestReservation();
+    </script>
+</body>
+</html>

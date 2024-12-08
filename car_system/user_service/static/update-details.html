@@ -72,7 +72,7 @@
         async function fetchUserDetails() {
             const errorDiv = document.getElementById('error');
             try {
-                const response = await fetch('http://localhost:8080/view-details', {
+                const response = await fetch('http://localhost:8080/api/view-details', {
                     method: 'GET',
                     credentials: 'include', // Ensure cookies are included for session handling
                 });
@@ -122,7 +122,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8080/update-details', {
+                const response = await fetch('http://localhost:8080/api/update-details', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

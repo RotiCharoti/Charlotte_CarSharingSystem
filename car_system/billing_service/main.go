@@ -1,8 +1,8 @@
 package main
 
 import (
-	"car_system/vehicle_service/config"
-	"car_system/vehicle_service/controllers"
+	"car_system/billing_service/config"
+	"car_system/billing_service/controllers"
 	"log"
 	"net/http"
 
@@ -19,11 +19,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// Define API routes
-	router.HandleFunc("/available-vehicles", controllers.GetAvailableVehicles).Methods("GET")
-	router.HandleFunc("/create-reservation", controllers.CreateReservation).Methods("POST")
-	router.HandleFunc("/latest-reservation", controllers.GetLatestReservation).Methods("GET")
+	router.HandleFunc("/calculate-rental-fee", controllers.CalculateRentalFee).Methods("POST")
+	router.HandleFunc("/billing", controllers.InsertBillingHandler).Methods("POST")
 
-	// Serve static files
+	// Serve static files if needed (adjust directory as per your frontend setup)
 	staticDir := "./static/" // Directory where your static files are located
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(staticDir))))
 
@@ -35,6 +34,6 @@ func main() {
 		handlers.AllowCredentials(),
 	)
 
-	log.Fatal(http.ListenAndServe(":8081", cors(router)))
-
+	log.Println("Billing service running on port 8082...")
+	log.Fatal(http.ListenAndServe(":8082", cors(router)))
 }

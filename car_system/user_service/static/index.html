@@ -88,7 +88,7 @@
             };
 
             try {
-                const response = await fetch('http://localhost:8080/register', { // Ensure URL is correct
+                const response = await fetch('http://localhost:8080/api/register', { // Ensure URL is correct
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),

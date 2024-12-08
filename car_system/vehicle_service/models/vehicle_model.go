@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Reservation represents a vehicle reservation
+// Reservation represents a reservation in the database
 type Reservation struct {
 	ReservationID       int       `json:"reservation_id"`
 	VehicleID           int       `json:"vehicle_id"`
@@ -16,6 +16,7 @@ type Reservation struct {
 	ExpectedChargeLevel float64   `json:"expected_charge_level"`
 	Status              string    `json:"status"`
 	CreatedAt           time.Time `json:"created_at"`
+	RentalRate          float64   `json:"vehicle_rental_rate"`
 }
 
 // Vehicle represents a vehicle in the database
@@ -87,4 +88,68 @@ func CreateReservation(reservation *Reservation) error {
 	`
 	_, err := config.DB.Exec(query, reservation.VehicleID, reservation.UserID, reservation.StartTime, reservation.EndTime, reservation.ExpectedChargeLevel)
 	return err
+}
+
+// GetLatestReservationByUserID fetches the latest reservation for a given user
+func GetLatestReservationByUserID(userID int) (*Reservation, error) {
+	query := `
+		SELECT 
+    r.reservation_id,
+    r.vehicle_id,
+    r.user_id,
+    r.start_time,
+    r.end_time,
+    r.expected_charge_level,
+    r.status,
+    r.created_at,
+    v.rental_rate
+FROM Reservation r
+JOIN Vehicle v ON r.vehicle_id = v.vehicle_id
+WHERE r.user_id = ?
+ORDER BY r.created_at DESC
+LIMIT 1
+
+	`
+
+	var reservation Reservation
+	var startTimeStr, endTimeStr, createdAtStr string
+
+	err := config.DB.QueryRow(query, userID).Scan(
+		&reservation.ReservationID,
+		&reservation.VehicleID,
+		&reservation.UserID,
+		&startTimeStr,
+		&endTimeStr,
+		&reservation.ExpectedChargeLevel,
+		&reservation.Status,
+		&createdAtStr,
+		&reservation.RentalRate, // Include rental rate
+	)
+
+	if err != nil {
+		log.Printf("Error fetching latest reservation for user ID %d: %v", userID, err)
+		return nil, err
+	}
+
+	// Parse time strings
+	const layout = "2006-01-02 15:04:05"
+	reservation.StartTime, err = time.Parse(layout, startTimeStr)
+	if err != nil {
+		log.Printf("Error parsing start_time for reservation: %v", err)
+		return nil, err
+	}
+
+	reservation.EndTime, err = time.Parse(layout, endTimeStr)
+	if err != nil {
+		log.Printf("Error parsing end_time for reservation: %v", err)
+		return nil, err
+	}
+
+	reservation.CreatedAt, err = time.Parse(layout, createdAtStr)
+	if err != nil {
+		log.Printf("Error parsing created_at for reservation: %v", err)
+		return nil, err
+	}
+
+	return &reservation, nil
 }

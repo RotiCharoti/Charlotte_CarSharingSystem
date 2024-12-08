@@ -60,18 +60,24 @@
             errorDiv.textContent = '';
 
             try {
-                const response = await fetch('http://localhost:8081/available-vehicles', {
+                // Fetch data from the proxy endpoint in user_service
+                const response = await fetch('http://localhost:8080/api/proxy-available-vehicles', {
                     method: 'GET',
+                    credentials: 'include', // Include session cookies
                 });
 
+                // Log raw response for debugging
+                const textResponse = await response.text();
+                console.log("Raw response:", textResponse);
+
+                // Parse the response as JSON
+                const result = JSON.parse(textResponse);
+
                 if (!response.ok) {
-                    const result = await response.json();
                     throw new Error(result.message || 'Failed to fetch vehicles.');
                 }
 
-                const result = await response.json();
                 const vehicles = result.vehicles;
-
                 vehicleList.innerHTML = '';
                 if (!vehicles || vehicles.length === 0) {
                     vehicleList.innerHTML = '<p class="no-data">No vehicles available.</p>';
@@ -84,13 +90,10 @@
                     vehicleItem.innerHTML = `
                         <h2>${vehicle.model} (${vehicle.license_plate})</h2>
                         <p><strong>Location:</strong> ${vehicle.location}</p>
-                        <p><strong>Status:</strong> ${vehicle.status}</p>
-                        <p><strong>Reservation Status:</strong> ${vehicle.reservation_status}</p>
                         <p><strong>Battery Level:</strong> ${vehicle.charge_level}%</p>
-                        <p><strong>Battery Capacity:</strong> ${vehicle.battery_capacity_kwh || 'N/A'} kWh</p>
-                        <p><strong>Cleanliness:</strong> ${vehicle.cleanliness}</p>
-                        <p><strong>Mileage:</strong> ${vehicle.mileage} km</p>
                         <p><strong>Rental Rate:</strong> $${vehicle.rental_rate.toFixed(2)}/hour</p>
+                        <p><strong>Mileage:</strong> ${vehicle.mileage} km</p>
+                        <p><strong>Status:</strong> ${vehicle.status}</p>
                         <button class="reserve-button" onclick="redirectToReservation(${vehicle.vehicle_id})">Reserve</button>
                     `;
                     vehicleList.appendChild(vehicleItem);
