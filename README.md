@@ -81,6 +81,10 @@ Computes fees based on:
    ### billing_service:
    - cd car_system/billing_service
    - Runs on port 8082
-   
-  
+
+<br> 
+
+# Architecture Diagram of Car Rental System
+  ![image](https://github.com/user-attachments/assets/9b49281d-9ea3-443a-9671-b35238250a3a)
+
 
