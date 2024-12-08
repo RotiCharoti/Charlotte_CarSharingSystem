@@ -63,4 +63,24 @@ Computes fees based on:
 
 ### Payment Processing:
 
+<br>
+
+# Instructions On Running Car System Microservices
+## 1. Open 3 different terminals
+- Terminal Type can be Shell/Git Bash
+  
+## 2. In each terminal, change directory to each micro services:
+   ### user_service:
+   - cd car_system/user_service
+   - Runs on port 8080
+
+   ### vehicle_service:
+   - cd car_system/vehicle_service
+   - Runs on port 8081
+  
+   ### billing_service:
+   - cd car_system/billing_service
+   - Runs on port 8082
+   
+  
 
