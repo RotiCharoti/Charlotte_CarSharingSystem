@@ -73,15 +73,25 @@ Computes fees based on:
    ### user_service:
    - cd car_system/user_service
    - Runs on port 8080
+   - Insert a .env file with session secret (can be any of your choice), along withthe database information
+
+  ![image](https://github.com/user-attachments/assets/27268d65-3f4a-4f98-bd42-52fd3ac3e6de)
+  <br>(Password will be your user password)
+
+  - Remember to put the .env in .gitignore
+  ![image](https://github.com/user-attachments/assets/e16028ee-7a37-457d-a524-ba57e43c8508)
 
    ### vehicle_service:
    - cd car_system/vehicle_service
    - Runs on port 8081
+   - Insert a .env file with session secret (can be any of your choice), along withthe database information (This time change DB_NAME to vehicle_service)
+   - Put in .gitignore
   
    ### billing_service:
    - cd car_system/billing_service
    - Runs on port 8082
-
+   - Insert a .env file with session secret (can be any of your choice), along withthe database information (This time change DB_NAME to billing_service)
+   - Put in .gitignore
 <br> 
 
 # Architecture Diagram of Car Rental System
